@@ -1,0 +1,9 @@
+node_modules/
+.vscode/
+dist/
+
+s3sh
+s3sh.exe
+s3sh-mac
+
+env.cmd
