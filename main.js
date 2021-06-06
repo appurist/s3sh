@@ -165,8 +165,10 @@ async function onGet(tokens) {
   }
   let where = (tokens.length >= 2) ? applyFolderToPath(Prefix, tokens[1]) : Prefix;
   let doc = await s3api.docGet(where);
-  // console.log(`${doc.path}:\n`+JSON.stringify(doc.data, null, 2));
-  console.log(where+":\n"+JSON.stringify(doc, null, 2));
+  if (doc) {
+    // console.log(`${doc.path}:\n`+JSON.stringify(doc.data, null, 2));
+    console.log(where+":\n"+JSON.stringify(doc, null, 2));
+  }
 }
 
 async function onShow(tokens) {
@@ -176,7 +178,9 @@ async function onShow(tokens) {
   }
   let where = (tokens.length >= 2) ? applyFolderToPath(Prefix, tokens[1]) : Prefix;
   let doc = await s3api.docGet(where);
-  console.log(where+":\n"+doc);
+  if (doc) {
+    console.log(where+":\n"+doc);
+  }
 }
 
 function onEnv(tokens) {
@@ -236,7 +240,7 @@ try {
     cli.addCommand(onCD,        ['cd']);
     cli.addCommand(onList,      ['list', 'ls', 'dir']);
     cli.addCommand(onGet,       ['get', 'dump']);
-    cli.addCommand(onShow,      ['read', 'type', 'cat']);
+    cli.addCommand(onShow,      ['read', 'type', 'cat', 'show', 'more']);
     await cli.run();
   } catch (e) {
     logger.error(e);
