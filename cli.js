@@ -91,6 +91,9 @@ async function run() {
     await processLine(line);
     rl.prompt();
   });
+  await rl.on("close", () => {
+    process.exit(0);
+  });  
 }
 
 module.exports = {
