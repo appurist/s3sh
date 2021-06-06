@@ -1,5 +1,6 @@
 // Load the SDK for JavaScript
 const { S3Client, ListObjectsCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const chalk = require("chalk");
 
 // Set the AWS context
 let accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -86,7 +87,8 @@ async function docList(_prefix, _bucket) {
     }
   }
   catch (err) {
-    console.error("List error:", err.stack || err.message);
+    // console.error("List error:", err.stack || chalk.red(err.message));
+    console.error("List error:", chalk.red(err.message));
     list = [ ];
   }
   return list; // For unit tests.
@@ -113,7 +115,9 @@ async function docGet(Key, _bucket) {
     // console.log(bodyContents);
     return bodyContents;
   } catch (err) {
-    console.log("Read error:", err.message);
+    // console.error("Read error:", err.message);
+    console.error("Read error:", chalk.red(err.message));
+    return undefined;
   }
 }
 
