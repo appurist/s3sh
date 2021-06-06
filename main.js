@@ -160,7 +160,7 @@ try {
     cli.init(process.stdin, process.stdout);
     cli.addCommand(onAccessKey, ['access']);
     cli.addCommand(onSecretKey, ['secret']);
-    cli.addCommand(onBucket,    ['bucket', 'proj', 'projectid', 'project', 'id']);
+    cli.addCommand(onBucket,    ['bucket', 'proj', 'project']);
     cli.addCommand(onList,      ['list', 'ls', 'dir']);
     cli.addCommand(onGet,       ['get', 'dump']);
     cli.addCommand(onShow,      ['read', 'type', 'cat']);
