@@ -4,37 +4,45 @@ const chalk = require('chalk');
 
 let rl;
 let commands = [];
-let arg0 = '';
-let helpText = '';
-let help = {};
+let cmdHelpText = '';
+let cmdHelp = {};
 let aliases = { };
 
 function setCommandLineHelp(k, v) {
-  help[k] = v;
+  cmdHelp[k] = v;
 }
 
 function initCommandLine(cmd0, commandLineArgs) {
-  arg0 = cmd0;
-  helpText = `Usage: ${chalk.yellow(cmd0)} [${chalk.green('options')}], where ${chalk.green('options')} can be:\n`;
+  cmdHelpText = `Usage: ${chalk.yellow(cmd0)} [${chalk.green('options')}], where ${chalk.green('options')} can be:\n`;
   for (let k in commandLineArgs) {
     let opt = commandLineArgs[k];
     if (typeof opt === 'string') {
       if (aliases[k] === undefined) aliases[k] = [];  // first one for [k]
       aliases[k].push(opt);
     } else {
-      let desc = help[k] || '(missing help description)';
-      helpText += `  ${chalk.yellow(k)} (${desc})\n`;
+      let desc = cmdHelp[k] || '(missing help description)';
+      cmdHelpText += `  ${chalk.yellow(k)} (${desc})\n`;
     }
   }
-  helpText += `These options also have these short-form ${chalk.green('aliases')}:\n`;
+  cmdHelpText += `These options also have these short-form ${chalk.green('aliases')}:\n`;
   for (let a in aliases) {
-    helpText += `  ${chalk.yellow(a)}: ${chalk.green(aliases[a].join(' '))}\n`;
+    cmdHelpText += `  ${chalk.yellow(a)}: ${chalk.green(aliases[a].join(' '))}\n`;
   }
   return arg(commandLineArgs);
 }
 
 function onCommandLineHelp() {
-  console.log(helpText);
+  console.log(cmdHelpText);
+}
+
+function onHelp() {
+  let cmds = [ ];
+  for (let cmd in commands) {
+    if (commands.hasOwnProperty(cmd)) {
+      cmds.push(cmd);
+    }
+  }
+  console.log(`The following commands are available:\n${cmds.join(', ')}`);
 }
 
 function onQuit() {
@@ -43,7 +51,7 @@ function onQuit() {
 
 function init(input, output) {
   rl = readline.createInterface({input, output});
-  addCommand(onCommandLineHelp, ['help', '?']);
+  addCommand(onHelp, ['help', '?']);
   addCommand(onQuit, ['quit', 'exit', 'bye']);
 }
 
@@ -87,5 +95,5 @@ async function run() {
 
 module.exports = {
   setCommandLineHelp, initCommandLine, onCommandLineHelp,
-  init, addCommand, commands, process, run
+  init, addCommand, process, run
 }
