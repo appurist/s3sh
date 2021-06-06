@@ -12,7 +12,8 @@ require('dotenv-defaults/config');
 const logger = console; // for now
 let args;
 let accessKey, secretKey, bucket;
-let prefix = '';
+
+let Prefix = '';
 
 let cmd0 = 's3sh';      // the name of this command
 let commandLineOptions = {
@@ -97,14 +98,48 @@ function onBucket(tokens) {
   console.log("Bucket ID set to:", bucket);
 }
 
+function onPWD(tokens) {
+  Prefix = s3api.normalizePrefix(Prefix);
+
+  console.log(`Context is now: /${Prefix || ''}`);
+}
+
+function onCD(tokens) {
+  if (tokens.length < 2) {
+    return onPWD(tokens);
+  }
+
+  let where = applyFolderToPath(Prefix, tokens[1]);
+  Prefix = s3api.normalizePrefix(where);
+  onPWD();
+}
+
+function isAbsolute(what) {
+  if (!what) return false;
+  return what.startsWith('/') || what.startsWith('~');
+}
+
+function applyFolderToPath(base, folder) {
+  let where = base;
+  if (folder) {
+    if (isAbsolute(folder)) {
+      where = folder;
+    } else {
+      where += folder;
+    }
+  }
+  return where;
+}
+
 async function onList(tokens) {
   if ((tokens[1]==='?') || (tokens[1]==='help')) {
     console.log('Syntax: list [<what>]');
     return;
   }
-  let where = (tokens.length < 2) ? prefix : tokens[1];
+
+  let where = (tokens.length >= 2) ? applyFolderToPath(Prefix, tokens[1]) : Prefix;
   let results = await s3api.docList(where);
-  // console.log("list:", results);
+
   for (let item of results) {
     if (item.type === 'folder') {
       console.log(`  ${chalk.yellow(item.name)} [${chalk.magenta(item.type)}]`);
@@ -119,10 +154,10 @@ async function onGet(tokens) {
     console.log('Syntax: read <what>');
     return;
   }
-  let what = tokens[1];
-  let doc = await s3api.docGet(what);
+  let where = (tokens.length >= 2) ? applyFolderToPath(Prefix, tokens[1]) : Prefix;
+  let doc = await s3api.docGet(where);
   // console.log(`${doc.path}:\n`+JSON.stringify(doc.data, null, 2));
-  console.log(what+":\n"+JSON.stringify(doc, null, 2));
+  console.log(where+":\n"+JSON.stringify(doc, null, 2));
 }
 
 async function onShow(tokens) {
@@ -130,10 +165,9 @@ async function onShow(tokens) {
     console.log('Syntax: read <what>');
     return;
   }
-  let what = tokens[1];
-  let doc = await s3api.docGet(what);
-  // console.log(`${doc.path}:\n`+JSON.stringify(doc.data, null, 2));
-  console.log(what+":\n"+doc);
+  let where = (tokens.length >= 2) ? applyFolderToPath(Prefix, tokens[1]) : Prefix;
+  let doc = await s3api.docGet(where);
+  console.log(where+":\n"+doc);
 }
 
 async function onInit(tokens) {
@@ -163,6 +197,8 @@ try {
     cli.addCommand(onAccessKey, ['access']);
     cli.addCommand(onSecretKey, ['secret']);
     cli.addCommand(onBucket,    ['bucket', 'proj', 'project']);
+    cli.addCommand(onPWD,       ['cwd', 'pwd']);
+    cli.addCommand(onCD,        ['cd']);
     cli.addCommand(onList,      ['list', 'ls', 'dir']);
     cli.addCommand(onGet,       ['get', 'dump']);
     cli.addCommand(onShow,      ['read', 'type', 'cat']);
