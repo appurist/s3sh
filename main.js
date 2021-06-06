@@ -144,7 +144,7 @@ async function onList(tokens) {
     if (item.type === 'folder') {
       console.log(`  ${chalk.yellow(item.name)} [${chalk.magenta(item.type)}]`);
     } else {
-      console.log(`  ${chalk.green(item.name)} ${chalk.magenta(item.size)} bytes [${chalk.grey(item.modified)}]`);
+      console.log(`  ${chalk.green(item.name)} ${chalk.magenta(item.size+' bytes')} [${chalk.grey(item.modified)}]`);
     }
   }
 }
@@ -170,8 +170,13 @@ async function onShow(tokens) {
   console.log(where+":\n"+doc);
 }
 
-async function onInit(tokens) {
-  await s3api.init();
+function onEnv(tokens) {
+  let accessKey = process.env.AWS_ACCESS_KEY_ID;
+  let secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+  console.log("AWS_ACCESS_KEY_ID:", accessKey ? accessKey.slice(0,4)+'...'+accessKey.slice(-2) : '(not set)');
+  console.log("AWS_SECRET_ACCESS_KEY:", secretAccessKey ? secretAccessKey.slice(0,4)+'...'+secretAccessKey.slice(-2) : '(not set)');
+  console.log("AWS_PROFILE:", process.env.AWS_PROFILE);
+  console.log("AWS_REGION_ID:", process.env.AWS_REGION_ID);
 }
 
 try {
@@ -197,6 +202,7 @@ try {
     cli.addCommand(onAccessKey, ['access']);
     cli.addCommand(onSecretKey, ['secret']);
     cli.addCommand(onBucket,    ['bucket', 'proj', 'project']);
+    cli.addCommand(onEnv,       ['env']);
     cli.addCommand(onPWD,       ['cwd', 'pwd']);
     cli.addCommand(onCD,        ['cd']);
     cli.addCommand(onList,      ['list', 'ls', 'dir']);
