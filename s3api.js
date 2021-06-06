@@ -16,16 +16,33 @@ function init(proj, reg) {
 }
 
 // pass a collection name for 'where'
-async function docList(what) {
+async function docList(Prefix) {
   let list = [ ];
   try {
-    let results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket }));
-    // console.log("Success", results);
-    for (let folder of results.CommonPrefixes) {
-      list.push({ name: folder.Prefix, size: 0, type: 'folder', modified: 0 });
+    if (Prefix === '/')
+      Prefix = '';
+    else if (Prefix && !Prefix.endsWith('/')) {
+      Prefix += '/';
     }
-    for (let doc of results.Contents) {
-      list.push({ name: doc.Key, size: doc.Size, type: 'file', modified: doc.LastModified });
+    let results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
+    if (results.CommonPrefixes && results.CommonPrefixes.length===1 && results.CommonPrefixes[0] === Prefix) {
+      Prefix += '/';
+      results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
+    }
+    // console.log("Success", results);
+    if (results.CommonPrefixes) { // any folders?
+      for (let folder of results.CommonPrefixes) {
+        let name = folder.Prefix.slice(Prefix.length);
+        list.push({ name, size: 0, type: 'folder', modified: 0 });
+      }
+    }
+    if (results.Contents) { // any files?
+      for (let doc of results.Contents) {
+        let name = doc.Key.slice(Prefix.length);
+        if (name.length>0) {  // skip the current (parent) folder itself, specifed in Prefix
+          list.push({ name, size: doc.Size, type: 'file', modified: doc.LastModified });
+        }
+      }
     }
   }
   catch (err) {

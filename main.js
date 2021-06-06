@@ -12,6 +12,7 @@ require('dotenv-defaults/config');
 const logger = console; // for now
 let args;
 let accessKey, secretKey, bucket;
+let prefix = '';
 
 let cmd0 = 's3sh';      // the name of this command
 let commandLineOptions = {
@@ -97,11 +98,12 @@ function onBucket(tokens) {
 }
 
 async function onList(tokens) {
-  if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
-    console.log('Syntax: list <what>');
+  if ((tokens[1]==='?') || (tokens[1]==='help')) {
+    console.log('Syntax: list [<what>]');
     return;
   }
-  let results = await s3api.docList(tokens[1]);
+  let where = (tokens.length < 2) ? prefix : tokens[1];
+  let results = await s3api.docList(where);
   // console.log("list:", results);
   for (let item of results) {
     if (item.type === 'folder') {
