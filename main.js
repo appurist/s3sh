@@ -74,7 +74,7 @@ function onAccessKey(tokens) {
     return;
   }
   accessKey = tokens[1];
-  // s3api.setAccessKey(accessKey);
+  s3api.setAccessKey(accessKey);
   console.log("Access key set to:", accessKey);
 }
 
@@ -84,7 +84,7 @@ function onSecretKey(tokens) {
     return;
   }
   secretKey = tokens[1];
-  // s3api.setAccessKey(secretKey);
+  s3api.setSecretAccessKey(secretKey);
   console.log("Secret key set to:", secretKey);
 }
 
@@ -94,7 +94,7 @@ function onBucket(tokens) {
     return;
   }
   bucket = tokens[1];
-  // s3api.setProjectId(projectId);
+  s3api.setBucket(bucket);
   console.log("Bucket ID set to:", bucket);
 }
 

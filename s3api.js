@@ -1,18 +1,49 @@
 // Load the SDK for JavaScript
 const { S3Client, ListObjectsCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 
-// Set the Region 
-let region = process.env.AWS_REGION || 'ca-central-1';
-let s3Client = null;
+// Set the AWS context
+let accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+let secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+let region = process.env.AWS_REGION_ID;
+let bucket = process.env.AWS_BUCKET;
 
-let Bucket = null;  // aws-sdk uppercases this in bucket params
 let Delimiter = '/';
+let s3Client;
 
-function init(proj, reg) {
-  delete s3Client;
-  Bucket = proj || 'osssbox';
-  region = reg || region;
-  s3Client = new S3Client({ region });
+function init(_region, _access, _secret, _bucket) {
+  if (s3Client) delete s3Client;
+
+  region = _region || region;
+  accessKeyId = _access || accessKeyId;
+  secretAccessKey = _secret || secretAccessKey;
+
+  bucket = _bucket || bucket; // also save this if specified here
+
+  let credentials;
+  if (accessKeyId && secretAccessKey) {
+    credentials = { accessKeyId, secretAccessKey };
+  }
+
+  if (!region) throw new Error('Region not specified, e.g. "us-east-1"');
+
+  s3Client = new S3Client({ region, credentials });
+}
+
+function setAccessKey(_key) {
+  accessKeyId = _key;
+  if (s3Client) init();
+}
+function setSecretAccessKey(_key) {
+  secretAccessKey = _key;
+  if (s3Client) init();
+}
+function setRegion(_region) {
+  region = _region;
+  if (s3Client) init();
+}
+function setBucket(_bucket) {
+  bucket = _bucket;
+  // no need to init for a bucket name change
 }
 
 function normalizePrefix(Prefix) {
@@ -33,12 +64,12 @@ function normalizePrefix(Prefix) {
 }
 
 // pass a collection name for 'where'
-async function docList(Prefix) {
+async function docList(_prefix, _bucket) {
   let list = [ ];
+  let Bucket = _bucket || bucket;
   try {
-    Prefix = normalizePrefix(Prefix);
+    let Prefix = normalizePrefix(_prefix);
     let results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
-    // console.log("Success", results);
     if (results.CommonPrefixes) { // any folders?
       for (let folder of results.CommonPrefixes) {
         let name = folder.Prefix.slice(Prefix.length);
@@ -55,14 +86,15 @@ async function docList(Prefix) {
     }
   }
   catch (err) {
-    console.log("List error:", err.message);
+    console.error("List error:", err.stack || err.message);
     list = [ ];
   }
   return list; // For unit tests.
 }
 
-// pass a collection name for 'where', a doc name for 'which'
-async function docGet(what) {
+// Retrieve the file 'Key' in '_bucket'.
+async function docGet(Key, _bucket) {
+  let Bucket = _bucket || bucket;
   try {
     // Create a helper function to convert a ReadableStream to a string.
     const streamToString = (stream) =>
@@ -74,15 +106,20 @@ async function docGet(what) {
       });
 
     // Get the object} from the Amazon S3 bucket. It is returned as a ReadableStream.
-    const data = await s3Client.send(new GetObjectCommand({ Bucket, Key: what }));
+    const data = await s3Client.send(new GetObjectCommand({ Bucket, Key }));
     // return data; // For unit tests.
     // Convert the ReadableStream to a string.
     const bodyContents = await streamToString(data.Body);
-    console.log(bodyContents);
+    // console.log(bodyContents);
     return bodyContents;
   } catch (err) {
     console.log("Read error:", err.message);
   }
 }
 
-module.exports = { init, normalizePrefix, docList, docGet }
+module.exports = { 
+  setAccessKey, setSecretAccessKey,
+  setRegion, setBucket,
+  init, normalizePrefix,
+  docList, docGet
+}
