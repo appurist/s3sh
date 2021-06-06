@@ -11,7 +11,7 @@ require('dotenv-defaults/config');
 
 const logger = console; // for now
 let args;
-let accessKey, secretKey, bucket;
+let bucket;
 
 let Prefix = '';
 
@@ -21,6 +21,7 @@ let commandLineOptions = {
   '--access': String,   // --access  <string> or --access=<string>
   '--secret': String,   // --access  <string> or --access=<string>
   '--profile': String,  // --profile <string> or --profile=<string>
+  '--region': String,   // --region  <string> or --region=<string>
   '--bucket': String,   // --bucket  <string> or --bucket=<string>
 
   '--quiet': Boolean,
@@ -32,6 +33,7 @@ let commandLineOptions = {
   '-a': '--access',
   '-s': '--secret',
   '-b': '--bucket',
+  '-r': '--region',
   '-p': '--profile',
 
   '-q': '--quiet',
@@ -45,6 +47,7 @@ cli.setCommandLineHelp('--access',  'specifies AWS IAM access key, e.g. AKIAIOSF
 cli.setCommandLineHelp('--secret',  'specifies AWS IAM secret key, e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
 cli.setCommandLineHelp('--profile', 'specifies AWS user credentials profile to use (from the ~/.aws folder)');
 cli.setCommandLineHelp('--bucket',  'specifies AWS S3 bucket to use');
+cli.setCommandLineHelp('--region',  'specifies AWS region to use, e.g. ca-central-1');
 cli.setCommandLineHelp('--verbose', 'enables verbose mode, showing more output');
 cli.setCommandLineHelp('--version', 'displays the version number of this utility');
 cli.setCommandLineHelp('--help',    'shows this command-line syntax help');
@@ -70,32 +73,38 @@ process.on('uncaughtException', onError);
 
 function onAccessKey(tokens) {
   if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
-    console.log('Syntax: access <access-key>');
+    console.log('Syntax: access <accessKey>');
     return;
   }
-  accessKey = tokens[1];
-  s3api.setAccessKey(accessKey);
-  console.log("Access key set to:", accessKey);
+  s3api.setAccessKey(tokens[1]);
+  console.log("Access key set to:", tokens[1]);
 }
 
 function onSecretKey(tokens) {
   if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
-    console.log('Syntax: secret <secret-key>');
+    console.log('Syntax: secret <secretKey>');
     return;
   }
-  secretKey = tokens[1];
-  s3api.setSecretAccessKey(secretKey);
-  console.log("Secret key set to:", secretKey);
+  s3api.setSecretAccessKey(tokens[1]);
+  console.log("Secret key set to:", tokens[1]);
 }
 
 function onBucket(tokens) {
   if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
-    console.log('Syntax: bucket <name>');
+    console.log('Syntax: bucket <bucketName>');
     return;
   }
-  bucket = tokens[1];
-  s3api.setBucket(bucket);
-  console.log("Bucket ID set to:", bucket);
+  s3api.setBucket(tokens[1]);
+  console.log("Bucket ID set to:", tokens[1]);
+}
+
+function onRegion(tokens) {
+  if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
+    console.log('Syntax: region <regionId>');
+    return;
+  }
+  s3api.setRegion(tokens[1]);
+  console.log("Region ID set to:", tokens[1]);
 }
 
 function onPWD(tokens) {
@@ -196,11 +205,31 @@ try {
       cli.onCommandLineHelp();
       handleShutdown(0);
     }
+
+    if (args['--access']) {
+      s3api.setAccessKey(args['--access']);
+    }
+    if (args['--secret']) {
+      s3api.setSecretAccessKey(args['--secret']);
+    }
+    if (args['--region']) {
+      s3api.setRegion(args['--region']);
+      if (!args['--verbose']) {
+        console.log('Region set to:', args['--region']);
+      }
+    }
+    if (args['--bucket']) {
+      s3api.setBucket(args['--bucket']);
+      if (!args['--verbose']) {
+        console.log('Bucket set to:', args['--bucket']);
+      }
+    }
     
     await s3api.init();
     cli.init(process.stdin, process.stdout);
     cli.addCommand(onAccessKey, ['access']);
     cli.addCommand(onSecretKey, ['secret']);
+    cli.addCommand(onRegion,    ['region']);
     cli.addCommand(onBucket,    ['bucket', 'proj', 'project']);
     cli.addCommand(onEnv,       ['env']);
     cli.addCommand(onPWD,       ['cwd', 'pwd']);
