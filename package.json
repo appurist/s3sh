@@ -1,6 +1,6 @@
 {
   "name": "s3sh",
-  "version": "0.0.10604",
+  "version": "0.1.10606",
   "author": "Paul Whittemore <dev@authordesktop.com>",
   "description": "A shell-like CLI for testing an AWS S3-compatible store.",
   "private": true,

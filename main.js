@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const cli = require('./cli')
 const s3api = require('./s3api');
 
-const VERSION = '1.0.10125';
+const VERSION = '0.1.10606';
 
 // read .env and .env.defaults
 require('dotenv-defaults/config');
