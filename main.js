@@ -107,6 +107,15 @@ function onRegion(tokens) {
   console.log("Region ID set to:", tokens[1]);
 }
 
+function onProfile(tokens) {
+  if ((tokens.length !== 2) || (tokens[1]==='?') || (tokens[1]==='help')) {
+    console.log('Syntax: region <regionId>');
+    return;
+  }
+  s3api.setProfile(tokens[1]);
+  console.log("Profile ID set to:", tokens[1]);
+}
+
 function onPWD(tokens) {
   Prefix = s3api.normalizePrefix(Prefix);
 
@@ -216,6 +225,12 @@ try {
     if (args['--secret']) {
       s3api.setSecretAccessKey(args['--secret']);
     }
+    if (args['--profile']) {
+      s3api.setProfile(args['--profile']);
+      if (!args['--verbose']) {
+        console.log('Profile set to:', args['--profile']);
+      }
+    }
     if (args['--region']) {
       s3api.setRegion(args['--region']);
       if (!args['--verbose']) {
@@ -233,6 +248,7 @@ try {
     cli.init(process.stdin, process.stdout);
     cli.addCommand(onAccessKey, ['access']);
     cli.addCommand(onSecretKey, ['secret']);
+    cli.addCommand(onProfile,   ['profile']);
     cli.addCommand(onRegion,    ['region']);
     cli.addCommand(onBucket,    ['bucket', 'proj', 'project']);
     cli.addCommand(onEnv,       ['env']);

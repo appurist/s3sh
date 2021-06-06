@@ -1,5 +1,6 @@
 // Load the SDK for JavaScript
 const { S3Client, ListObjectsCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const {fromIni} = require("@aws-sdk/credential-provider-ini");
 const chalk = require("chalk");
 
 // Set the AWS context
@@ -7,6 +8,7 @@ let accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 let secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 let region = process.env.AWS_REGION_ID;
 let bucket = process.env.AWS_BUCKET;
+let profile = process.env.AWS_PROFILE_ID;
 
 let Delimiter = '/';
 let s3Client;
@@ -23,6 +25,9 @@ function init(_region, _access, _secret, _bucket) {
   let credentials;
   if (accessKeyId && secretAccessKey) {
     credentials = { accessKeyId, secretAccessKey };
+  } else
+  if (profile) {
+    credentials = fromIni({profile});
   }
 
   if (!region) throw new Error('Region not specified, e.g. "us-east-1"');
@@ -40,6 +45,10 @@ function setSecretAccessKey(_key) {
 }
 function setRegion(_region) {
   region = _region;
+  if (s3Client) init();
+}
+function setProfile(_profile) {
+  profile = _profile;
   if (s3Client) init();
 }
 function setBucket(_bucket) {
@@ -122,7 +131,7 @@ async function docGet(Key, _bucket) {
 }
 
 module.exports = { 
-  setAccessKey, setSecretAccessKey,
+  setAccessKey, setSecretAccessKey, setProfile,
   setRegion, setBucket,
   init, normalizePrefix,
   docList, docGet
