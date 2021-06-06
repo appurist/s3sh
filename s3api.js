@@ -15,15 +15,28 @@ function init(proj, reg) {
   s3Client = new S3Client({ region });
 }
 
+function normalizePrefix(Prefix) {
+  if ((Prefix === '/') || (Prefix === '~') || (Prefix === '~/')) {
+    Prefix = '';
+  } else if (Prefix && !Prefix.endsWith('/')) {
+    Prefix += '/';
+  }
+
+  if (Prefix && Prefix.startsWith('~/')) {
+    Prefix = Prefix.slice(2);
+  } else
+  if (Prefix && Prefix.startsWith('/')) {
+    Prefix = Prefix.slice(1);
+  }
+
+  return Prefix;
+}
+
 // pass a collection name for 'where'
 async function docList(Prefix) {
   let list = [ ];
   try {
-    if (Prefix === '/')
-      Prefix = '';
-    else if (Prefix && !Prefix.endsWith('/')) {
-      Prefix += '/';
-    }
+    Prefix = normalizePrefix(Prefix);
     let results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
     // console.log("Success", results);
     if (results.CommonPrefixes) { // any folders?
@@ -72,4 +85,4 @@ async function docGet(what) {
   }
 }
 
-module.exports = { init, docList, docGet }
+module.exports = { init, normalizePrefix, docList, docGet }
