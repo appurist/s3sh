@@ -25,10 +25,6 @@ async function docList(Prefix) {
       Prefix += '/';
     }
     let results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
-    if (results.CommonPrefixes && results.CommonPrefixes.length===1 && results.CommonPrefixes[0] === Prefix) {
-      Prefix += '/';
-      results = await s3Client.send(new ListObjectsCommand({ Delimiter, Bucket, Prefix }));
-    }
     // console.log("Success", results);
     if (results.CommonPrefixes) { // any folders?
       for (let folder of results.CommonPrefixes) {
