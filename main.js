@@ -197,8 +197,9 @@ function onEnv(tokens) {
   let secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
   console.log("AWS_ACCESS_KEY_ID:", accessKey ? accessKey.slice(0,4)+'...'+accessKey.slice(-2) : '(not set)');
   console.log("AWS_SECRET_ACCESS_KEY:", secretAccessKey ? secretAccessKey.slice(0,4)+'...'+secretAccessKey.slice(-2) : '(not set)');
-  console.log("AWS_PROFILE:", process.env.AWS_PROFILE);
-  console.log("AWS_REGION_ID:", process.env.AWS_REGION_ID);
+  console.log("AWS_PROFILE:", process.env.AWS_PROFILE || '(not set)');
+  console.log("AWS_REGION_ID:", process.env.AWS_REGION_ID || '(not set)');
+  console.log("AWS_BUCKET:", process.env.AWS_BUCKET || '(not set)');
 }
 
 try {
