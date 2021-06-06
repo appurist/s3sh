@@ -65,7 +65,7 @@ function addCommand(handler, cmds) {
   }
 }
 
-async function process(line) {
+async function processLine(line) {
   let trimmed = line.trim();
   if (!trimmed) return;
 
@@ -88,7 +88,7 @@ async function process(line) {
 async function run() {
   rl.prompt();
   rl.on('line', async (line) => {
-    await process(line);
+    await processLine(line);
     rl.prompt();
   });
 }
