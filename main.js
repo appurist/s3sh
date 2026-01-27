@@ -4,10 +4,9 @@ const chalk = require('chalk');
 const cli = require('./cli')
 const s3api = require('./s3api');
 
-const VERSION = '0.1.10606';
+const VERSION = '0.2.60127';
 
-// read .env and .env.defaults
-require('dotenv-defaults/config');
+// Bun loads .env automatically
 
 const logger = console; // for now
 let args;
